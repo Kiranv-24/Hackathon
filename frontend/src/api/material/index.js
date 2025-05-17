@@ -1,42 +1,53 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
-const AuthAPI = () => {
-  if (typeof window !== "undefined") {
-    return axios.create({
-      baseURL: `${import.meta.env.VITE_BASE_URL}/v1/`,
-      headers: {
-        authorization: `Bearer ${localStorage.getItem("token")}`,
-        "Content-Type": "application/json",
-      },
-    });
-  } else {
-    return axios.create({
-      baseURL: `${import.meta.env.VITE_BASE_URL}/v1/`,
-      headers: {
-        authorization: `Bearer }`,
-        "Content-Type": "application/json",
-      },
-    });
+const API_URL = "http://localhost:5000/v1";
+
+// Create axios instance with auth token
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("token");
+  return {
+    headers: {
+      authorization: `Bearer ${token}`,
+    },
+  };
+};
+
+const getallSubjects = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/user/get-subjects`, getAuthHeaders());
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { success: false, message: "Failed to fetch subjects" };
   }
 };
-const getallSubjects = async () => {
-  const { data } = await AuthAPI().get("/user/get-subjects");
-  return data;
-};
+
 const getmaterial = async (subjectName) => {
-  const { data } = await AuthAPI().get("/user/get-materials", {
-    params: {
-      subjectName,
-    },
-  });
-  console.log(data);
-  return data;
+  try {
+    const response = await axios.get(`${API_URL}/user/get-materials/${subjectName}`, {
+      ...getAuthHeaders()
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { success: false, message: "Failed to fetch materials" };
+  }
 };
-const createMaterial = async (formdata) => {
-  const { data } = await AuthAPI().post("/user/create-material", formdata);
-  return data;
+
+const createMaterial = async (formData) => {
+  try {
+    const response = await axios.post(`${API_URL}/user/create-material`, formData, {
+      ...getAuthHeaders(),
+      headers: {
+        ...getAuthHeaders().headers,
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { success: false, message: "Failed to create material" };
+  }
 };
+
 const getSubjectsQuery = () =>
   useQuery({
     queryKey: ["get-subjects"],

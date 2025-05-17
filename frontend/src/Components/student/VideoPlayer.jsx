@@ -33,19 +33,23 @@ const VideoPlayer = () => {
   const [videoData, setVideoData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [playing, setPlaying] = useState(true);
+  const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const [muted, setMuted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [relatedVideos, setRelatedVideos] = useState([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [playbackError, setPlaybackError] = useState(false);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const playerRef = useRef(null);
   const containerRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchVideoData();
+    if (videoId) {
+      fetchVideoData();
+    }
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
@@ -56,12 +60,24 @@ const VideoPlayer = () => {
     try {
       setLoading(true);
       setError('');
+      setPlaybackError(false);
       const response = await axiosInstance.get(`/api/videos/${videoId}`);
       if (response.data.success) {
-        setVideoData(response.data.video);
+        const videoData = response.data.video;
+        if (videoData.videoUrl) {
+          let videoUrl = videoData.videoUrl.replace('http://', 'https://');
+          
+          if (videoUrl.includes('cloudinary')) {
+            videoUrl = videoUrl.replace(/\/upload\/.*?\//, '/upload/');
+            videoUrl = videoUrl.replace('/upload/', '/upload/f_auto,q_auto/');
+          }
+          
+          videoData.videoUrl = videoUrl;
+        }
+        setVideoData(videoData);
         await axiosInstance.post(`/api/videos/${videoId}/view`);
-        if (response.data.video?.category) {
-          fetchRelatedVideos(response.data.video.category, videoId);
+        if (videoData?.category) {
+          fetchRelatedVideos(videoData.category, videoId);
         }
       } else {
         setError(response.data.message || 'Failed to load video');
@@ -122,6 +138,46 @@ const VideoPlayer = () => {
     setDuration(duration);
   };
 
+  const handlePlayPause = () => {
+    if (!hasUserInteracted) {
+      setHasUserInteracted(true);
+    }
+    setPlaying(!playing);
+  };
+
+  const handleError = (e) => {
+    console.error('Video playback error:', e);
+    
+    if (e?.message?.includes('play() failed because the user didn\'t interact')) {
+      setPlaybackError(true);
+      toast.error('Please click the play button to start the video');
+      return;
+    }
+    
+    setPlaybackError(true);
+    
+    if (e?.type === 'hlsError' && playerRef.current) {
+      const currentUrl = videoData.videoUrl;
+      if (currentUrl.includes('cloudinary')) {
+        const newUrl = currentUrl.replace('/upload/', '/upload/f_auto,q_auto/');
+        setVideoData(prev => ({
+          ...prev,
+          videoUrl: newUrl
+        }));
+      }
+      
+      setTimeout(() => {
+        playerRef.current.seekTo(0);
+        setPlaying(false);
+      }, 1000);
+    }
+    toast.error('Error playing video. Please try again later.');
+  };
+
+  const handleReady = () => {
+    setPlaybackError(false);
+  };
+
   const formatTime = (seconds) => {
     if (isNaN(seconds)) return '0:00';
     const minutes = Math.floor(seconds / 60);
@@ -140,11 +196,19 @@ const VideoPlayer = () => {
   };
 
   const handleVideoClick = (id) => {
-    navigate(`/video-player/${id}`);
+    navigate(`/user/video-player/${id}`);
   };
 
   const goBack = () => {
     navigate(-1);
+  };
+
+  const handleRetry = () => {
+    setPlaybackError(false);
+    if (playerRef.current) {
+      playerRef.current.seekTo(0);
+      setPlaying(true);
+    }
   };
 
   return (
@@ -174,31 +238,89 @@ const VideoPlayer = () => {
                   backgroundColor: '#000',
                 }}
               >
-                <ReactPlayer
-                  ref={playerRef}
-                  url={videoData.videoUrl}
-                  width="100%"
-                  height="100%"
-                  style={{
-                    position: isFullscreen ? 'relative' : 'absolute',
-                    top: 0,
-                    left: 0,
-                  }}
-                  playing={playing}
-                  volume={volume}
-                  muted={muted}
-                  onProgress={handleProgress}
-                  onDuration={handleDuration}
-                  controls
-                  config={{
-                    file: {
-                      attributes: {
-                        controlsList: 'nodownload',
-                        disablePictureInPicture: true,
+                {playbackError ? (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                      color: 'white',
+                      gap: 2,
+                    }}
+                  >
+                    <Typography variant="h6">Error playing video</Typography>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => {
+                        setPlaybackError(false);
+                        setPlaying(true);
+                        setHasUserInteracted(true);
+                      }}
+                    >
+                      Play Video
+                    </Button>
+                  </Box>
+                ) : (
+                  <ReactPlayer
+                    ref={playerRef}
+                    url={videoData.videoUrl}
+                    width="100%"
+                    height="100%"
+                    style={{
+                      position: isFullscreen ? 'relative' : 'absolute',
+                      top: 0,
+                      left: 0,
+                    }}
+                    playing={playing}
+                    volume={volume}
+                    muted={muted}
+                    onProgress={handleProgress}
+                    onDuration={handleDuration}
+                    onError={handleError}
+                    onReady={handleReady}
+                    onClick={handlePlayPause}
+                    controls
+                    config={{
+                      file: {
+                        attributes: {
+                          controlsList: 'nodownload',
+                          disablePictureInPicture: true,
+                          crossOrigin: 'anonymous',
+                        },
+                        forceVideo: true,
+                        forceHLS: false,
+                        hlsOptions: {
+                          xhrSetup: function(xhr) {
+                            xhr.withCredentials = false;
+                          },
+                          enableWorker: true,
+                          debug: false,
+                          backBufferLength: 90,
+                          maxBufferLength: 30,
+                          maxMaxBufferLength: 600,
+                          maxBufferSize: 60 * 1000 * 1000,
+                          maxBufferHole: 0.5,
+                          lowLatencyMode: true,
+                          abrEwmaDefaultEstimate: 500000,
+                          startLevel: -1
+                        }
                       },
-                    },
-                  }}
-                />
+                      youtube: {
+                        playerVars: {
+                          origin: window.location.origin
+                        }
+                      }
+                    }}
+                  />
+                )}
               </Box>
 
               <Box sx={{ p: 3 }}>

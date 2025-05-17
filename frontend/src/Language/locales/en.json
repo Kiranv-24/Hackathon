@@ -112,7 +112,35 @@
     "weather_light_rain": "Light rain",
     
     "mentor_tests": "Mentor's Tests",
-    "create_test": "Create test",
+    "create_test": {
+        "title": "Create a Test",
+        "test_name": "Test Name",
+        "test_name_placeholder": "Enter test name",
+        "description": "Description",
+        "description_placeholder": "Enter test description",
+        "subject": "Subject",
+        "select_subject": "Select a subject",
+        "class": "Class",
+        "select_class": "Select a class",
+        "questions": "Questions",
+        "add_question": "Add Question",
+        "new_question": "New Question",
+        "question_placeholder": "Enter your question",
+        "options": "Options",
+        "correct_answer": "Correct Answer",
+        "add_option": "Add Option",
+        "option_placeholder": "Enter option",
+        "remove_option": "Remove Option",
+        "remove_question": "Remove Question",
+        "create_test_button": "Create Test",
+        "cancel": "Cancel",
+        "required_field": "This field is required",
+        "min_questions": "At least one question is required",
+        "min_options": "At least two options are required",
+        "success": "Test created successfully!",
+        "error": "Error creating test",
+        "submitting": "Creating test..."
+    },
     "discuss": "Discuss",
     "home": "Home",
     "leaderboard": "Leaderboard",
@@ -146,6 +174,78 @@
         "ml": "Responsible for building the machine learning prospects",
         "frontend": "Responsible for designing the entire frontend UI and making enhancing the frontend",
         "ai": "Responsible for AI integrations in our platform"
+    },
+    "create_material": {
+        "title": "Create Learning Material",
+        "subject": "Subject",
+        "class": "Class",
+        "topic": "Topic",
+        "description": "Description",
+        "content": "Content",
+        "upload_file": "Upload File",
+        "submit": "Submit Material",
+        "cancel": "Cancel",
+        "success": "Material created successfully!",
+        "error": "Error creating material",
+        "file_types": "Supported file types: PDF, DOC, DOCX, PPT, PPTX",
+        "max_file_size": "Maximum file size: 10MB",
+        "required_field": "This field is required",
+        "select_subject": "Select a subject",
+        "select_class": "Select a class",
+        "placeholder": {
+            "topic": "Enter the topic name",
+            "description": "Enter a detailed description of the material",
+            "content": "Enter the content or instructions"
+        }
+    },
+    "video_call": {
+        "title": "Video Call",
+        "join_room": "Join Room",
+        "create_room": "Create Room",
+        "room_id": "Room ID",
+        "enter_room_id": "Enter Room ID",
+        "your_name": "Your Name",
+        "enter_name": "Enter your name",
+        "join": "Join",
+        "leave": "Leave Call",
+        "copy_room_id": "Copy Room ID",
+        "room_id_copied": "Room ID copied to clipboard!",
+        "waiting": "Waiting for others to join...",
+        "camera_off": "Camera Off",
+        "camera_on": "Camera On",
+        "mic_off": "Mic Off",
+        "mic_on": "Mic On",
+        "screen_share": "Share Screen",
+        "stop_screen_share": "Stop Sharing",
+        "connection_error": "Connection error. Please try again.",
+        "join_error": "Error joining the room. Please try again.",
+        "no_devices": "No camera/microphone devices found",
+        "permission_denied": "Camera/Microphone permission denied"
+    },
+    "virtual_assistant": {
+        "title": "Virtual Assistant",
+        "welcome_message": "Hello! I'm your virtual learning assistant. How can I help you today?",
+        "input_placeholder": "Type your question here...",
+        "send": "Send",
+        "thinking": "Thinking...",
+        "error_message": "Sorry, I couldn't process your request. Please try again.",
+        "suggestions": {
+            "title": "You can ask me about:",
+            "items": [
+                "Study techniques and tips",
+                "Subject-specific questions",
+                "Exam preparation advice",
+                "Learning resources",
+                "Time management",
+                "Academic planning"
+            ]
+        },
+        "feedback": {
+            "helpful": "Was this helpful?",
+            "yes": "Yes",
+            "no": "No",
+            "thanks": "Thank you for your feedback!"
+        }
     }
 }
   

@@ -30,7 +30,7 @@ function Material() {
   return (
     <div className="">
       <div className="base-container py-[5vh]">
-        <h2 className="text-3xl font-merri">Subjects for Class 10</h2>
+        <h2 className="text-3xl font-merri">Subjects for Class 11</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 my-5">
           {subjects.length > 0 ? (
             subjects.map((course, index) => (
@@ -42,11 +42,11 @@ function Material() {
                 className="border rounded-lg shadow-lg bg-white p-4"
                 style={cardStyle}
               >
-                {/* <img
+                <img
                   src="https://qph.cf2.quoracdn.net/main-qimg-9e96b92ec2e1d42f8cb5378f9c7540c7-pjlq"
                   alt={course.name}
                   className="w-[400px] h-[250px]"
-                /> */}
+                />
                 <h3 className="text-xl font-semibold text-center m-2">
                   {course.name.toUpperCase()}
                 </h3>

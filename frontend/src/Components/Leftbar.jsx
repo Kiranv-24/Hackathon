@@ -4,7 +4,7 @@ import { GetUserQuery } from "../api/user";
 import { RiDiscussFill } from "react-icons/ri";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import { CgProfile } from "react-icons/cg";
-import { MdDashboard } from "react-icons/md";
+import { MdDashboard, MdChat } from "react-icons/md";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { MdLeaderboard, MdAssignmentAdd } from "react-icons/md";
@@ -449,6 +449,50 @@ const Leftbar = () => {
                         onClick={() => setSelected("/mentor/createMaterial")}
                       >
                         {t("sidebar_create_material")}
+                      </Link>
+                    </span>
+                  </div>
+                </li>
+              )}
+              {/* Topic Discussion Menu Item */}
+              {user?.role === "mentor" ? (
+                <li>
+                  <div
+                    className={
+                      selected === "/mentor/topic-discussion"
+                        ? "border-zinc-700 bg-gray-50 relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent"
+                        : "relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent hover:border-indigo-500 pr-6"
+                    }
+                  >
+                    <span className="inline-flex justify-center items-center ml-4"></span>
+                    <MdChat className="text-xl" />
+                    <span className="ml-2 text-sm tracking-wide truncate">
+                      <Link
+                        to="/mentor/topic-discussion"
+                        onClick={() => setSelected("/mentor/topic-discussion")}
+                      >
+                        {t("topic_discussion")}
+                      </Link>
+                    </span>
+                  </div>
+                </li>
+              ) : (
+                <li>
+                  <div
+                    className={
+                      selected === "/user/topic-discussion"
+                        ? "border-zinc-700 bg-gray-50 relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent"
+                        : "relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent hover:border-indigo-500 pr-6"
+                    }
+                  >
+                    <span className="inline-flex justify-center items-center ml-4"></span>
+                    <MdChat className="text-xl" />
+                    <span className="ml-2 text-sm tracking-wide truncate">
+                      <Link
+                        to="/user/topic-discussion"
+                        onClick={() => setSelected("/user/topic-discussion")}
+                      >
+                        {t("topic_discussion")}
                       </Link>
                     </span>
                   </div>

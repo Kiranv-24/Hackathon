@@ -54,7 +54,13 @@ const VideoLibrary = () => {
       setLoading(true);
       const response = await axiosInstance.get('/api/videos');
       if (response.data.success) {
-        setVideos(response.data.videos || []);
+        // Ensure all video URLs are properly formatted
+        const formattedVideos = response.data.videos.map(video => ({
+          ...video,
+          videoUrl: video.videoUrl?.replace('http://', 'https://'),
+          thumbnailUrl: video.thumbnailUrl?.replace('http://', 'https://')
+        }));
+        setVideos(formattedVideos);
       } else {
         setError(response.data.message || 'Failed to fetch videos');
         toast.error('Error loading videos');
@@ -69,7 +75,11 @@ const VideoLibrary = () => {
   };
 
   const handleVideoClick = (videoId) => {
-    navigate(`/video-player/${videoId}`);
+    if (!videoId) {
+      toast.error('Invalid video ID');
+      return;
+    }
+    navigate(`/user/video-player/${videoId}`);
   };
 
   const formatDuration = (seconds) => {
@@ -92,7 +102,7 @@ const VideoLibrary = () => {
   const getFilteredVideos = () => {
     return videos.filter(video => {
       const matchesSearch = video.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          video.description.toLowerCase().includes(searchTerm.toLowerCase());
+                          video.description?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesCategory = selectedCategory === '' || selectedCategory === 'All' || 
                             video.category === selectedCategory;

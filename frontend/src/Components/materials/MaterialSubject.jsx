@@ -4,6 +4,7 @@ import Leftbar from "../Leftbar";
 import { getmaterial } from "../../api/material";
 import { toast } from "react-hot-toast";
 import Loading from "../Loading";
+import { FaFilePdf, FaDownload } from "react-icons/fa";
 
 function MaterialSubject() {
   const [material, setMaterial] = useState([]);
@@ -54,19 +55,31 @@ function MaterialSubject() {
     }
   };
 
+  const handleDownload = (fileUrl, fileName) => {
+    try {
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      toast.error("Failed to download file. Please try again.");
+      console.error("Download error:", err);
+    }
+  };
+
   useEffect(() => {
     fetchMaterial();
   }, [id]);
 
   return (
-    <div className="max-w-screen max-h-screen ">
-      <div className="p-4  ">
+    <div className="max-w-screen max-h-screen">
+      <div className="p-4">
         <h2 className="text-2xl font-semibold mb-4">Material for {id}</h2>
-        <div className="">
+        <div>
           {loading ? (
-            <>
-              <Loading />
-            </>
+            <Loading />
           ) : error ? (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
               <p>{error}</p>
@@ -95,6 +108,41 @@ function MaterialSubject() {
               >
                 <h3 className="text-xl font-semibold">{mat.title}</h3>
                 <p className="mt-2 text-gray-600">{mat.content}</p>
+                
+                {mat.fileUrl && (
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <a
+                        href={mat.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                      >
+                        <FaFilePdf className="mr-2" />
+                        View PDF
+                      </a>
+                      <button
+                        onClick={() => handleDownload(mat.fileUrl, mat.fileName)}
+                        className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                      >
+                        <FaDownload className="mr-2" />
+                        Download
+                      </button>
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      {mat.fileName} ({(mat.fileSize / 1024 / 1024).toFixed(2)} MB)
+                    </p>
+                  </div>
+                )}
+                
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-500">
+                    Uploaded by: {mat.owner?.name || 'Unknown'}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {new Date(mat.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
               </div>
             ))
           ) : (
