@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { customResponse } from "../../../utils/Response";
+import { cloudinary } from "../../../config/cloudinary.js";
 
 const prisma = new PrismaClient();
 
@@ -61,6 +62,24 @@ const materialController = {
   async createMaterialsMentor(req, res, next) {
     try {
       const { title, content, classname, subjectname } = req.body;
+      
+      // Check for PDF file
+      if (!req.files || !req.files.pdf) {
+        return res.status(400).json({
+          success: false,
+          message: "PDF file is required"
+        });
+      }
+
+      const pdfFile = req.files.pdf;
+      
+      // Validate file type
+      if (!pdfFile.mimetype.includes('pdf')) {
+        return res.status(400).json({
+          success: false,
+          message: "Only PDF files are allowed"
+        });
+      }
 
       let classRecord = await prisma.class.findFirst({
         where: {
@@ -82,15 +101,32 @@ const materialController = {
           classId: classRecord.id,
         },
       });
+      
       if (!subjectRecord) {
         subjectRecord = await prisma.subject.create({
           data: {
             name: subjectname,
             classId: classRecord.id,
-            // Add any other subject-related fields here
           },
         });
       }
+
+      // Upload PDF to Cloudinary
+      let pdfUploadResult;
+      try {
+        pdfUploadResult = await cloudinary.uploader.upload(pdfFile.tempFilePath, {
+          resource_type: "raw",
+          folder: "educational_materials",
+          public_id: `${Date.now()}_${pdfFile.name.replace(/\s+/g, '_')}`,
+        });
+      } catch (uploadError) {
+        console.error("Error uploading PDF to Cloudinary:", uploadError);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to upload PDF file"
+        });
+      }
+
       let newMaterial = null;
 
       if (subjectRecord && classRecord) {
@@ -101,15 +137,15 @@ const materialController = {
             classId: classRecord.id,
             content: content,
             title: title,
+            pdfUrl: pdfUploadResult.secure_url,
+            pdfPublicId: pdfUploadResult.public_id,
           },
         });
       } else {
-        // Handle the case where either subjectRecord or classRecord is not found.
-        res.json({
+        return res.json({
           success: false,
           message: "Subject or class not found",
         });
-        return;
       }
 
       res.json({
@@ -159,10 +195,7 @@ const materialController = {
         },
       });
 
-      console.log(findclassId, "class ID");
-      
       if (!findclassId) {
-        // If class not found, create it for this user
         const newClass = await prisma.class.create({
           data: {
             name: req.user.classname,
@@ -173,11 +206,10 @@ const materialController = {
         
         return res.json({
           success: false,
-          message: `Class '${req.user.classname}' was not found in the database. It has been created, but has no subjects yet.`,
+          message: `Class '${req.user.classname}' was created as it didn't exist before. No materials available yet.`,
         });
       }
       
-      // Get the subject ID first
       const subject = await prisma.subject.findFirst({
         where: {
           name: subjectName,
@@ -192,24 +224,36 @@ const materialController = {
         });
       }
 
-      // Then query materials using the subject ID
       const materials = await prisma.material.findMany({
-          where: {
-            classId: findclassId.id,
+        where: {
+          classId: findclassId.id,
           subjectId: subject.id,
+        },
+        include: {
+          subject: true,
+          owner: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            }
           },
-          include: {
-            subject: true,
-            owner: true,
-          },
-        });
+        },
+      });
       
       console.log("Materials found:", materials.length);
 
       if (materials && materials.length > 0) {
+        // Format the response to include PDF information
+        const formattedMaterials = materials.map(material => ({
+          ...material,
+          hasPdf: !!material.pdfUrl,
+          pdfUrl: material.pdfUrl,
+        }));
+
         return res.json({
           success: true,
-          message: materials,
+          message: formattedMaterials,
         });
       } else {
         return res.json({

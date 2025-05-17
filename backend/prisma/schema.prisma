@@ -48,14 +48,16 @@ model Subject {
 }
 
 model Material {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  content   String
-  userId    String
-  subjectId String
-  classId   String
-  owner     User    @relation(fields: [userId], references: [id])
-  subject   Subject @relation(fields: [subjectId], references: [id])
+  id            String  @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  content       String
+  userId        String
+  subjectId     String
+  classId       String
+  pdfUrl        String?
+  pdfPublicId   String?
+  owner         User    @relation(fields: [userId], references: [id])
+  subject       Subject @relation(fields: [subjectId], references: [id])
 }
 
 model User {

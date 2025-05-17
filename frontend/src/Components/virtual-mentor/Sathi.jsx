@@ -40,9 +40,7 @@ function Sathi() {
   return (
     <div className="base-container py-[5vh] flex flex-col justify-center items-center ">
       <i className="text-5xl font-merri text-theme">Virtual Mentor</i>
-      <p className="my-5  text-blue-700  text-2xl font-semibold">
-      Powered By Google Gemini
-      </p>
+      
 
       <div className="flex-grow flex flex-col items-center justify-center my-10">
         <div

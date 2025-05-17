@@ -89,4 +89,4 @@ const networkController = {
   }
 };
 
-export default networkController; 
+export default networkController;

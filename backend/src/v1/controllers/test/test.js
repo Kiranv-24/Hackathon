@@ -725,30 +725,104 @@ async getMySubmissions(req,res){
   // alows to get mentor all the test he/she has created til yet
   async getAllTestsCreatedByUser(req, res, next) {
     try {
-      // Get the user's ID from the request (assuming you have a way to identify the user)
       const userId = req.user.id;
+      console.log("Getting tests for user:", userId);
 
-      // Find all tests created by the user
+      // First run the fix tests function to ensure no null subjects
+      try {
+        // Find all tests with missing subjects
+        const testsWithoutSubject = await prisma.test.findMany({
+          where: {
+            mentorId: userId,
+            OR: [
+              { subjectId: null },
+              { subject: null }
+            ]
+          },
+          include: {
+            class: true
+          }
+        });
+
+        console.log(`Found ${testsWithoutSubject.length} tests with missing subjects`);
+
+        // Process each test
+        for (const test of testsWithoutSubject) {
+          try {
+            if (!test.class) {
+              console.log(`Test ${test.id} has no class, skipping...`);
+              continue;
+            }
+
+            // Create or find a default subject for the class
+            let subject = await prisma.subject.findFirst({
+              where: {
+                name: "General",
+                classId: test.classId
+              }
+            });
+
+            if (!subject) {
+              subject = await prisma.subject.create({
+                data: {
+                  name: "General",
+                  classId: test.classId
+                }
+              });
+            }
+
+            // Update the test with the default subject
+            await prisma.test.update({
+              where: { id: test.id },
+              data: { subjectId: subject.id }
+            });
+
+            console.log(`Fixed test ${test.id} by assigning to subject ${subject.id}`);
+          } catch (err) {
+            console.error(`Error fixing test ${test.id}:`, err);
+          }
+        }
+      } catch (err) {
+        console.error("Error fixing tests with missing subjects:", err);
+      }
+
+      // Now get all valid tests
       const tests = await prisma.test.findMany({
         where: {
           mentorId: userId,
+          AND: [
+            { classId: { not: null } },
+            { subjectId: { not: null } }
+          ]
         },
         include: {
           class: true,
           subject: true,
-           questions: true,
+          questions: true,
         },
       });
 
+      console.log(`Found ${tests.length} valid tests for user ${userId}`);
+
+      // Filter out any remaining invalid tests as a safety measure
+      const validTests = tests.filter(test => 
+        test.class && 
+        test.subject && 
+        test.classId && 
+        test.subjectId
+      );
+
+      console.log(`Returning ${validTests.length} tests after validation`);
+
       res.json({
         success: true,
-        message: tests,
+        message: validTests,
       });
     } catch (error) {
       console.error("Error getting tests:", error);
       res.status(500).json({
         success: false,
-        message: "Error getting tests.",
+        message: "Error getting tests: " + error.message,
       });
     } finally {
       await prisma.$disconnect();
@@ -954,6 +1028,77 @@ async getMySubmissions(req,res){
       });
     }
   },
+  async fixTestsWithMissingSubjects(req, res) {
+    try {
+      // Find all tests with missing subjects
+      const testsWithoutSubject = await prisma.test.findMany({
+        where: {
+          OR: [
+            { subjectId: null },
+            { subject: null }
+          ]
+        },
+        include: {
+          class: true
+        }
+      });
+
+      console.log(`Found ${testsWithoutSubject.length} tests with missing subjects`);
+
+      // Process each test
+      for (const test of testsWithoutSubject) {
+        try {
+          if (!test.class) {
+            console.log(`Test ${test.id} has no class, deleting...`);
+            await prisma.test.delete({
+              where: { id: test.id }
+            });
+            continue;
+          }
+
+          // Create or find a default subject for the class
+          let subject = await prisma.subject.findFirst({
+            where: {
+              name: "General",
+              classId: test.classId
+            }
+          });
+
+          if (!subject) {
+            subject = await prisma.subject.create({
+              data: {
+                name: "General",
+                classId: test.classId
+              }
+            });
+          }
+
+          // Update the test with the default subject
+          await prisma.test.update({
+            where: { id: test.id },
+            data: { subjectId: subject.id }
+          });
+
+          console.log(`Fixed test ${test.id} by assigning to subject ${subject.id}`);
+        } catch (err) {
+          console.error(`Error fixing test ${test.id}:`, err);
+        }
+      }
+
+      res.json({
+        success: true,
+        message: `Fixed ${testsWithoutSubject.length} tests with missing subjects`
+      });
+    } catch (error) {
+      console.error("Error fixing tests:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error fixing tests: " + error.message
+      });
+    } finally {
+      await prisma.$disconnect();
+    }
+  }
 };
 
 export default testController;

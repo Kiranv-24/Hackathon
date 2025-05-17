@@ -194,17 +194,9 @@ const Leaderboard = () => {
   });
 
   return (
-    <div className="base-container gap-10 py-[5vh]">
-      <div className="flex-row-between space-x-2 w-full h-[220px]">
-        <div className="w-2/6 h-full bg-slate-100 rounded-lg shadow-md p-5">
-          <Bar data={chartData} options={options} />
-        </div>
-        <div className="w-2/6 h-full bg-slate-100 rounded-lg shadow-md p-5">
-          <Line data={chartAnalysis} options={options} />
-        </div>
-        <div className="w-2/6 h-full bg-slate-100 rounded-lg shadow-md p-5">
-          <LeadersList />
-        </div>
+    <div>
+      <div>
+        <h1>Leaderboard</h1>
       </div>
     </div>
   );

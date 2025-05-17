@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getSubmissionsByTestId } from "../../api/test"; // Assuming the function is exported from this path
+import { getSubmissionsByTestId } from "../../api/test";
 import { useParams } from "react-router";
 import {
   Table,
@@ -10,10 +10,11 @@ import {
   TableRow,
   Paper,
   Chip,
+  Button,
 } from "@mui/material";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
-import { Check, CheckCheck, Clock } from "lucide-react";
+import { Check, CheckCheck, Clock, Eye } from "lucide-react";
 import Loading from "../Loading";
 import toast from "react-hot-toast";
 
@@ -21,34 +22,36 @@ function IndividualTest() {
   const { testId } = useParams();
   const [submissions, setSubmissions] = useState([]);
   const [loading, setloading] = useState(false);
+
   const getSubmissions = async () => {
     try {
       setloading(true);
       const data = await getSubmissionsByTestId(testId);
       console.log("Test submissions:", data);
-      setSubmissions(data.message);
-      setloading(false);
+      if (data.success) {
+        setSubmissions(data.message || []);
+      } else {
+        toast.error(data.message || "Failed to load submissions");
+      }
     } catch (error) {
       console.error("Error fetching submissions:", error);
       toast.error("Failed to load test submissions");
+    } finally {
       setloading(false);
     }
   };
 
   useEffect(() => {
     getSubmissions();
-  }, []);
+  }, [testId]);
 
-  // Helper function to determine test status
   const getStatus = (submission) => {
     if (submission.completedAt) {
       return "Completed";
-    } else {
-      return "In Progress";
     }
+    return "In Progress";
   };
 
-  // Format date safely
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     try {
@@ -67,7 +70,7 @@ function IndividualTest() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>User Name</TableCell>
+                <TableCell>Student Name</TableCell>
                 <TableCell>Started At</TableCell>
                 <TableCell>Completed At</TableCell>
                 <TableCell>Status</TableCell>
@@ -79,13 +82,9 @@ function IndividualTest() {
               {submissions.length > 0 ? (
                 submissions.map((submission) => (
                   <TableRow key={submission.id}>
-                    <TableCell>{submission.user.name}</TableCell>
-                    <TableCell>
-                      {formatDate(submission.startedAt)}
-                    </TableCell>
-                    <TableCell>
-                      {formatDate(submission.completedAt)}
-                    </TableCell>
+                    <TableCell>{submission.user?.name || "Unknown"}</TableCell>
+                    <TableCell>{formatDate(submission.startedAt)}</TableCell>
+                    <TableCell>{formatDate(submission.completedAt)}</TableCell>
                     <TableCell>
                       <Chip 
                         label={getStatus(submission)}
@@ -96,24 +95,35 @@ function IndividualTest() {
                     </TableCell>
                     <TableCell>
                       {submission.score !== null && submission.score !== undefined 
-                        ? submission.score 
+                        ? <Chip 
+                            label={submission.score}
+                            color="primary"
+                            size="small"
+                          />
                         : "Not Scored"}
                     </TableCell>
                     <TableCell>
-                      {submission.completedAt && (!submission.score && submission.score !== 0) ? (
-                        <Link
+                      {submission.completedAt ? (
+                        <Link 
                           to={`/mentor/submission-details/${submission.id}`}
-                          className="text-blue-600 hover:underline"
+                          style={{ textDecoration: 'none' }}
                         >
-                          Score Test
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={submission.score !== null ? <Eye size={14} /> : <Check size={14} />}
+                            color={submission.score !== null ? "primary" : "success"}
+                          >
+                            {submission.score !== null ? "View Details" : "Score Test"}
+                          </Button>
                         </Link>
-                      ) : submission.completedAt ? (
-                        <div className="flex items-center text-green-600">
-                          <CheckCheck size={16} className="mr-1" />
-                          Scored
-                        </div>
                       ) : (
-                        <div className="text-amber-600">In Progress</div>
+                        <Chip 
+                          label="In Progress"
+                          color="warning"
+                          size="small"
+                          icon={<Clock size={14} />}
+                        />
                       )}
                     </TableCell>
                   </TableRow>

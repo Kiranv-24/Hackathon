@@ -125,5 +125,6 @@ router.get("/get-conversation/:id",authMiddleware,messageController.getMessage)
 router.get("/get-all-users",authMiddleware,userController.getAllUser)
 router.get("/all-convo",authMiddleware,messageController.getAllConversations)
 router.get("/getuserbyid/:id",authMiddleware,userController.getUserById)
+router.post("/fix-tests", authMiddleware, testController.fixTestsWithMissingSubjects);
 export default router;
 

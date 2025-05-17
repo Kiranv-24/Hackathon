@@ -20,11 +20,11 @@ const LanguageSelector = () => {
     >
       <option value="en">English</option>
       <option value="hi">हिंदी</option>
-      <option value="ta">தமிழ்</option>
+      {/* <option value="ta">தமிழ்</option> */}
       <option value="ka">ಕನ್ನಡ</option>
-      <option value="ml">മലയാളം</option>
-      <option value="be">বাংলা</option>
-      <option value="pu">ਪੰਜਾਬੀ</option>
+      {/* <option value="ml">മലയാളം</option> */}
+      {/* <option value="be">বাংলা</option> */}
+      {/* <option value="pu">ਪੰਜਾਬੀ</option> */}
     </select>
   );
 };

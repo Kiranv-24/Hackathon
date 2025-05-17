@@ -10,8 +10,10 @@ import {
   Button,
   Alert,
   Box,
+  Chip,
 } from "@mui/material";
 import toast from "react-hot-toast";
+import { Check, Clock } from "lucide-react";
 
 function SubmissionDetails() {
   const [details, setDetails] = useState([]);
@@ -26,6 +28,7 @@ function SubmissionDetails() {
   const fetchDetails = async () => {
     try {
       setLoading(true);
+      setError(null);
       const data = await getSubmissionDetails(id);
       console.log("Submission details:", data);
       
@@ -33,12 +36,12 @@ function SubmissionDetails() {
         setDetails(data.message || []);
         setAttemptInfo(data.attemptInfo);
         
-        // Check if there's already a score
-        if (data.attemptInfo && data.attemptInfo.score !== null && data.attemptInfo.score !== undefined) {
+        if (data.attemptInfo?.score !== null && data.attemptInfo?.score !== undefined) {
           setScore(data.attemptInfo.score.toString());
         }
       } else {
         setError("Failed to load submission details: " + data.message);
+        toast.error(data.message || "Failed to load submission details");
       }
     } catch (error) {
       console.error("Error fetching submission details:", error);
@@ -49,31 +52,46 @@ function SubmissionDetails() {
     }
   };
 
+  const validateScore = (value) => {
+    const numScore = parseFloat(value);
+    if (isNaN(numScore)) return false;
+    if (numScore < 0 || numScore > 100) return false;
+    return true;
+  };
+
   const scoreTest = async () => {
-    if (!score || isNaN(parseInt(score))) {
-      toast.error("Please enter a valid numeric score");
+    if (!validateScore(score)) {
+      toast.error("Please enter a valid score between 0 and 100");
       return;
     }
     
     try {
       setSubmitting(true);
+      setError(null);
       console.log("Submitting score:", { attemptId: id, score });
       const data = await scoreTestAttempt(id, score);
       
       if (data.success) {
         toast.success("Score submitted successfully");
         
-        // Go back to the test submissions page
-        if (attemptInfo?.test?.id) {
-          navigate(`/mentor/submission/${attemptInfo.test.id}`);
-        } else {
-          navigate(-1); // Go back if we don't have the test ID
-        }
+        // Refresh the details to show updated score
+        await fetchDetails();
+        
+        // Navigate back after a short delay
+        setTimeout(() => {
+          if (attemptInfo?.test?.id) {
+            navigate(`/mentor/submission/${attemptInfo.test.id}`);
+          } else {
+            navigate(-1);
+          }
+        }, 1500);
       } else {
+        setError(data.message || "Failed to submit score");
         toast.error(data.message || "Failed to submit score");
       }
     } catch (err) {
       console.error("Error submitting score:", err);
+      setError("Failed to submit score: " + (err.message || "Unknown error"));
       toast.error("Failed to submit score: " + (err.message || "Unknown error"));
     } finally {
       setSubmitting(false);
@@ -147,15 +165,18 @@ function SubmissionDetails() {
             Completed: {attemptInfo.completedAt ? new Date(attemptInfo.completedAt).toLocaleString() : "Not completed"}
           </Typography>
           {attemptInfo.score !== null && attemptInfo.score !== undefined && (
-            <Typography variant="body2" color="primary" className="font-semibold">
-              Current Score: {attemptInfo.score}
-            </Typography>
+            <Chip 
+              label={`Score: ${attemptInfo.score}`}
+              color="primary"
+              size="small"
+              icon={<Check size={14} />}
+            />
           )}
         </Box>
       </Box>
       
-        <div className="details-container space-y-4">
-          {details.length > 0 ? (
+      <div className="details-container space-y-4">
+        {details.length > 0 ? (
           <>
             {details.map((item, index) => (
               <Card
@@ -189,7 +210,7 @@ function SubmissionDetails() {
               </Card>
             ))}
           </>
-          ) : (
+        ) : (
           <Alert severity="info" className="mb-4">
             No answers submitted yet for this test attempt.
           </Alert>
@@ -198,27 +219,29 @@ function SubmissionDetails() {
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <Typography variant="h6" className="mb-2">
             Score Submission
-            </Typography>
+          </Typography>
           <div className="flex flex-col md:flex-row gap-4 items-start">
             <TextField
-              label="Score"
+              label="Score (0-100)"
               variant="outlined"
               value={score}
               onChange={(e) => setScore(e.target.value)}
               className="w-full md:w-1/3"
               type="number"
-              inputProps={{ min: 0 }}
+              inputProps={{ min: 0, max: 100, step: "0.1" }}
               size="small"
-              disabled={submitting}
+              disabled={submitting || (attemptInfo.score !== null && attemptInfo.score !== undefined)}
+              error={score !== "" && !validateScore(score)}
+              helperText={score !== "" && !validateScore(score) ? "Please enter a valid score between 0 and 100" : ""}
             />
             <Button
               variant="contained"
               color="primary"
               onClick={scoreTest}
-              disabled={submitting || !score}
+              disabled={submitting || (attemptInfo.score !== null && attemptInfo.score !== undefined) || !validateScore(score)}
               className="ml-2"
             >
-              {submitting ? "Submitting..." : "Submit Score"}
+              {submitting ? "Submitting..." : (attemptInfo.score !== null && attemptInfo.score !== undefined) ? "Already Scored" : "Submit Score"}
             </Button>
           </div>
         </div>

@@ -5,9 +5,9 @@
     "heading_4":"Partners & Sponsors",
     "button":"Get Started",
     "title_1":"Find your School Everywhere",
-    "description_1":"GreenIQ as a platform aims to provide users with seamless learning experience. Our goal is to make quality education and proper information accessible to one and all. Take a step forward to transform your educational journey with us.",
+    "description_1":"Our platform aims to provide users with seamless learning experience. Our goal is to make quality education and proper information accessible to one and all. Take a step forward to transform",
     "title_2":"Your School at your Doorstep!",
-    "description_2":"Inform your friends and join us on this journey of self-discovery. Learn, build, create and innovate all under one roof. GreenIQ is here for everyone.",
+    "description_2":"Inform your friends and join us on this journey of self-discovery. Learn, build, create and innovate all under one roof. Our platform is here for everyone.",
     
     "nav_home": "Home",
     "nav_about": "About",
@@ -15,8 +15,21 @@
     "nav_logout": "Logout",
     "nav_login": "Login",
     "nav_register": "Register",
+    "nav_contact": "Contact",
+    "nav_user": "User",
     
-    "login_welcome": "Welcome to GreenIQ",
+    "scroll_left": "Scroll Left",
+    "scroll_right": "Scroll Right",
+    
+    "book_meeting": "Book a Call",
+    
+    "site_status_up": "Site is up and Running",
+    "site_status_down": "Site is under Maintenance",
+    
+    "footer_checkout": "CHECK OUT",
+    "footer_policies": "POLICIES",
+    
+    "login_welcome": "Welcome to our Platform",
     "login_title": "Login",
     "login_new_user": "New User?",
     "login_create_account": "Create new Account",
@@ -114,8 +127,8 @@
     "remarks": "Remarks",
     
     "about_title": "We are the people who",
-    "about_subtitle": "Developed GreenIQ",
-    "about_description": "GreenIQ represents a transformative solution to the pressing challenges faced by rural education in Kerala. Through its innovative features and holistic approach, GreenIQ has the potential to significantly enhance the quality of education in rural areas, empowering students with knowledge and skills for a brighter future.",
+    "about_subtitle": "About Our Platform",
+    "about_description": "Our platform represents a transformative solution to the pressing challenges faced by rural education. Through its innovative features and holistic approach, we have the potential to significantly enhance the quality of education in rural areas, empowering students with knowledge and skills for a brighter future.",
     "about_team_title": "Team - Cyber Elites",
     "about_project_info": "PS: 1326 || Ideate and Implement Education in Rural Areas",
     "about_db_notice": "( Database migrated to Mongodb from Postgresql on 26/03/2024 due to the expiration of sql db on render's free tier )",
